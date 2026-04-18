@@ -1,0 +1,36 @@
+# Python
+**/__pycache__/
+*.py[cod]
+*$py.class
+**/venv/
+.env
+.python-version
+
+# Node
+node_modules/
+.next/
+out/
+build/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+.cursor/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+backend/scraped_menu.json
+backend/knowledge_base.json
+backend/test_scraper.py
+backend/scrape_menu_standalone.py
+backend/import_menu.py
+backend/scraped_menu_example.json
+backend/SCRAPER_*.md
+backend/scrape_and_import.*
