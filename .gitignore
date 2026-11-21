@@ -3,7 +3,7 @@
 *.py[cod]
 *$py.class
 **/venv/
-.env
+
 .python-version
 
 # Node
@@ -11,6 +11,9 @@ node_modules/
 .next/
 out/
 build/
+
+# Secrets (keep .env.example committed)
+.env
 .env.local
 .env.development.local
 .env.test.local
