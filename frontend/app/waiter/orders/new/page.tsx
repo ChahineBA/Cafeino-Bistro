@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useProducts } from '@/hooks/useProducts';
 import { useCreateOrder, useUpdateOrder } from '@/hooks/useOrders';
 import { OrderItem } from '@/types';
-import { Plus, Minus, ShoppingCart, Trash2, Coffee, Check, X, FileText, Croissant, Wine, IceCream, Salad, Cake, UtensilsCrossed, Egg, CupSoda } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, Trash2, Coffee, Check, X, FileText, Croissant, Wine, IceCream, Salad, Cake, UtensilsCrossed, Egg, CupSoda, Dumbbell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function NewOrderPage() {
@@ -91,6 +91,14 @@ export default function NewOrderPage() {
       bgGradient: 'from-pink-50 to-rose-100',
       emoji: '🥤',
       bgImage: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUupHCWGG1IynXFIMr6JZBSawfZUW4hDdP9A&s'
+    },
+    'proteino': {
+      icon: Dumbbell,
+      gradient: 'from-violet-600 to-indigo-700',
+      bgGradient: 'from-violet-50 to-indigo-100',
+      emoji: '💪',
+      // Pre-workout / creatine / protein jars with a shaker. Photo by Alex Saks on Unsplash (Unsplash License)
+      bgImage: 'https://images.unsplash.com/photo-1693996045838-980674653385?w=800&q=80'
     },
     'salades omlettes': { 
       icon: Salad, 
