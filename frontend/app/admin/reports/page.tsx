@@ -169,7 +169,7 @@ export default function ReportsPage() {
                 boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
                 padding: '12px'
               }}
-              formatter={(value: number) => [`${value.toFixed(2)} TND`, 'Revenue']}
+              formatter={(value) => [`${Number(value ?? 0).toFixed(2)} TND`, 'Revenue']}
               labelFormatter={(label) => format(new Date(label), 'MMM d, yyyy')}
             />
             <Bar 

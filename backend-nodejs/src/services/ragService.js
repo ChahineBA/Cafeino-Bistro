@@ -1,5 +1,4 @@
 const { QdrantClient } = require('@qdrant/js-client-rest');
-const { pipeline } = require('@xenova/transformers');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const fs = require('fs');
 const path = require('path');
@@ -25,6 +24,9 @@ class RAGService {
 
   async getEmbedder() {
     if (!this.embedder) {
+      // @xenova/transformers is ESM-only: load it with import() (require() crashes on Node < 22.12).
+      // Loading it here also keeps the model out of memory until the chatbot is first used.
+      const { pipeline } = await import('@xenova/transformers');
       this.embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
     }
     return this.embedder;
