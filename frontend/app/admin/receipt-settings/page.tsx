@@ -1,286 +1,70 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Eye, Save, RotateCcw, Printer } from 'lucide-react';
+import { useReceiptSettings, useUpdateReceiptSettings } from '@/hooks/useReceiptSettings';
+import { DEFAULT_RECEIPT_SETTINGS, ReceiptSettings } from '@/lib/receiptSettings';
+import { buildReceiptHTML, openReceiptWindow } from '@/lib/generateReceipt';
+
+// Sample order used for the live preview and the test print.
+const SAMPLE_RECEIPT = {
+  title: 'Receipt - Test Print',
+  items: [
+    { product_name: 'CAPPUCCINO', quantity: 2, subtotal: 9 },
+    { product_name: 'CROISSANT AU CHOCOLAT', quantity: 1, subtotal: 2.5 },
+  ],
+  total: 11.5,
+};
 
 export default function ReceiptSettingsPage() {
-  const [settings, setSettings] = useState({
-    businessName: "CAFEINO BISTRO",
-    tagline: "Where Every Cup Tells a Story",
-    phone: "(555) 123-4567",
-    website: "www.cafeinobistro.com",
-    socialMediaText: "Follow us on social media",
-    socialMediaHandle: "@cafeinobistro",
-    topMessage: "Thank you for your order!",
-    bottomMessage: "We hope you enjoyed your experience. Please visit us again soon!",
-    showLogo: true,
-    showSocialMedia: true,
-    footerText: "Powered by Cafeino POS System"
-  });
+  const { data: savedSettings, isLoading, isError, refetch } = useReceiptSettings();
+  const updateSettings = useUpdateReceiptSettings();
 
+  const [settings, setSettings] = useState<ReceiptSettings>(DEFAULT_RECEIPT_SETTINGS);
+  const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [previewHeight, setPreviewHeight] = useState(560);
 
-  // Load settings from localStorage on mount
+  // Fill the form once with the settings stored in the database.
   useEffect(() => {
-    const stored = localStorage.getItem('receiptSettings');
-    if (stored) {
-      try {
-        const loadedSettings = JSON.parse(stored);
-        // Merge with defaults to ensure all fields exist
-        setSettings({
-          businessName: loadedSettings.businessName || "CAFEINO BISTRO",
-          tagline: loadedSettings.tagline || "Where Every Cup Tells a Story",
-          phone: loadedSettings.phone || "(555) 123-4567",
-          website: loadedSettings.website || "www.cafeinobistro.com",
-          socialMediaText: loadedSettings.socialMediaText || "Follow us on social media",
-          socialMediaHandle: loadedSettings.socialMediaHandle || "@cafeinobistro",
-          topMessage: loadedSettings.topMessage || "Thank you for your order!",
-          bottomMessage: loadedSettings.bottomMessage || "We hope you enjoyed your experience. Please visit us again soon!",
-          showLogo: loadedSettings.showLogo !== undefined ? loadedSettings.showLogo : true,
-          showSocialMedia: loadedSettings.showSocialMedia !== undefined ? loadedSettings.showSocialMedia : true,
-          footerText: loadedSettings.footerText || "Powered by Cafeino POS System"
-        });
-      } catch (error) {
-        console.error('Error loading receipt settings:', error);
-      }
+    if (savedSettings && !loaded) {
+      setSettings(savedSettings);
+      setLoaded(true);
     }
-  }, []);
+  }, [savedSettings, loaded]);
 
-  const handleSave = () => {
-    localStorage.setItem('receiptSettings', JSON.stringify(settings));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    if (!loaded) return; // never overwrite the stored settings with unloaded defaults
+    setSaveError(null);
+    try {
+      const result = await updateSettings.mutateAsync(settings);
+      setSettings(result);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (error: any) {
+      setSaveError(error?.response?.data?.detail || 'Could not save. Check that the server is running and try again.');
+    }
   };
 
+  // Puts the default values in the form; click "Save Changes" to apply them.
   const handleReset = () => {
-    const defaultSettings = {
-      businessName: "CAFEINO BISTRO",
-      tagline: "Where Every Cup Tells a Story",
-      phone: "(555) 123-4567",
-      website: "www.cafeinobistro.com",
-      socialMediaText: "Follow us on social media",
-      socialMediaHandle: "@cafeinobistro",
-      topMessage: "Thank you for your order!",
-      bottomMessage: "We hope you enjoyed your experience. Please visit us again soon!",
-      showLogo: true,
-      showSocialMedia: true,
-      footerText: "Powered by Cafeino POS System"
-    };
-    setSettings(defaultSettings);
-    localStorage.setItem('receiptSettings', JSON.stringify(defaultSettings));
+    setSettings(DEFAULT_RECEIPT_SETTINGS);
+    setSaveError(null);
   };
+
+  // Live preview = the exact receipt template that gets printed.
+  const previewHTML = useMemo(
+    () => buildReceiptHTML({ ...SAMPLE_RECEIPT, settings, origin: '' }),
+    [settings]
+  );
 
   const handlePrintPreview = () => {
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
-    if (!printWindow) return;
-
-    const receiptHTML = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Receipt Preview</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            font-family: 'Courier New', monospace;
-            width: 80mm;
-            margin: 0 auto;
-            padding: 10px;
-            background: white;
-            font-size: 12px;
-            line-height: 1.4;
-          }
-          .receipt { width: 100%; }
-          .header {
-            text-align: center;
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 2px dashed #000;
-          }
-          .logo-image {
-            width: 60mm;
-            height: auto;
-            max-height: 25mm;
-            margin: 0 auto 8px;
-            display: block;
-            object-fit: contain;
-          }
-          .tagline {
-            font-size: 10px;
-            font-style: italic;
-            margin-bottom: 5px;
-          }
-          .contact-info {
-            font-size: 9px;
-            margin-top: 5px;
-            line-height: 1.5;
-          }
-          .order-info {
-            margin-bottom: 10px;
-            font-size: 11px;
-          }
-          .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 3px;
-          }
-          .info-label { font-weight: bold; }
-          .items-section { margin: 10px 0; }
-          .items-header {
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-            margin-bottom: 5px;
-            padding-bottom: 3px;
-            border-bottom: 1px solid #000;
-          }
-          .item-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 11px;
-          }
-          .item-detail {
-            font-size: 9px;
-            color: #666;
-            margin-left: 5px;
-            margin-bottom: 3px;
-          }
-          .total-section {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 2px solid #000;
-          }
-          .total-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 5px;
-          }
-          .message-section {
-            text-align: center;
-            margin-top: 15px;
-            padding-top: 10px;
-            border-top: 2px dashed #000;
-            font-size: 11px;
-          }
-          .thank-you {
-            font-weight: bold;
-            font-size: 13px;
-            margin-bottom: 8px;
-          }
-          .customer-message {
-            font-style: italic;
-            margin-bottom: 8px;
-            line-height: 1.5;
-          }
-          .social-media {
-            font-size: 10px;
-            margin: 8px 0;
-            padding: 6px 0;
-            border-top: 1px solid #000;
-            border-bottom: 1px solid #000;
-          }
-          .footer {
-            text-align: center;
-            margin-top: 10px;
-            padding-top: 8px;
-            border-top: 1px dashed #000;
-            font-size: 9px;
-          }
-          @media print {
-            body { width: 80mm; margin: 0; padding: 5px; }
-            @page { size: 80mm auto; margin: 0; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="receipt">
-          ${settings.showLogo ? `
-          <div class="header">
-            <div class="logo-container">
-              <img src="${window.location.origin}/logo.png" alt="Cafeino Bistro" class="logo-image" />
-              <div class="tagline">"${settings.tagline}"</div>
-            </div>
-            <div class="contact-info">
-              Tel: ${settings.phone}<br>
-              ${settings.website}
-            </div>
-          </div>
-          ` : ''}
-
-          <div class="order-info">
-            <div class="info-row">
-              <span class="info-label">Order #:</span>
-              <span>ORD-SAMPLE</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Date:</span>
-              <span>${new Date().toLocaleDateString()}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Time:</span>
-              <span>${new Date().toLocaleTimeString()}</span>
-            </div>
-          </div>
-
-          <div style="border-top: 2px solid #000; margin: 10px 0;"></div>
-
-          <div class="items-section">
-            <div class="items-header">
-              <span style="flex: 1;">ITEM</span>
-              <span style="width: 30px; text-align: center;">QTY</span>
-              <span style="width: 60px; text-align: right;">PRICE</span>
-            </div>
-            <div class="item-row">
-              <div style="flex: 1;">CAPPUCCINO</div>
-              <div style="width: 30px; text-align: center;">2</div>
-              <div style="width: 60px; text-align: right;">9.00 TND</div>
-            </div>
-            <div class="item-detail">@ 4.50 TND each</div>
-            <div class="item-row">
-              <div style="flex: 1;">CROISSANT</div>
-              <div style="width: 30px; text-align: center;">1</div>
-              <div style="width: 60px; text-align: right;">2.00 TND</div>
-            </div>
-            <div class="item-detail">@ 2.00 TND each</div>
-          </div>
-
-          <div class="total-section">
-            <div class="total-row">
-              <span>TOTAL:</span>
-              <span>11.00 TND</span>
-            </div>
-          </div>
-
-          <div class="message-section">
-            <div class="thank-you">★ ${settings.topMessage.toUpperCase()} ★</div>
-            <div class="customer-message">
-              ${settings.bottomMessage}
-            </div>
-            ${settings.showSocialMedia ? `
-            <div class="social-media">
-              ${settings.socialMediaText}<br>
-              <strong>${settings.socialMediaHandle}</strong>
-            </div>
-            ` : ''}
-            <div style="margin-top: 10px; font-size: 10px;">
-              ═══════════════════════
-            </div>
-          </div>
-
-          <div class="footer">
-            ${settings.footerText}
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    printWindow.document.write(receiptHTML);
-    printWindow.document.close();
+    const html = buildReceiptHTML({ ...SAMPLE_RECEIPT, settings, origin: window.location.origin, autoPrint: true });
+    if (!openReceiptWindow(html)) {
+      alert('Could not open the test print. Please allow popups for this site and try again.');
+    }
   };
 
   return (
@@ -309,13 +93,19 @@ export default function ReceiptSettingsPage() {
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleSave}
-            className={`flex items-center gap-2 px-6 py-3 font-bold rounded-xl shadow-xl transition-all ${
+            disabled={!loaded || updateSettings.isPending}
+            className={`flex items-center gap-2 px-6 py-3 font-bold rounded-xl shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
               saved
                 ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
                 : 'bg-gradient-to-r from-[#C17817] to-[#E8B86D] text-white shadow-[#C17817]/30'
             }`}
           >
-            {saved ? (
+            {updateSettings.isPending ? (
+              <>
+                <Save className="w-5 h-5 animate-pulse" />
+                Saving...
+              </>
+            ) : saved ? (
               <>
                 <motion.div
                   initial={{ scale: 0 }}
@@ -335,6 +125,26 @@ export default function ReceiptSettingsPage() {
           </motion.button>
         </div>
       </motion.div>
+
+      {/* Status */}
+      {isLoading && (
+        <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-sm text-blue-800">
+          Loading the saved receipt settings...
+        </div>
+      )}
+      {isError && !loaded && (
+        <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-800 flex items-center justify-between gap-3">
+          <span>Could not load the receipt settings from the server, so saving is disabled to avoid overwriting them.</span>
+          <button onClick={() => refetch()} className="px-3 py-1 rounded-lg bg-red-100 hover:bg-red-200 font-semibold">
+            Retry
+          </button>
+        </div>
+      )}
+      {saveError && (
+        <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-800">
+          {saveError}
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Settings Form */}
@@ -457,22 +267,7 @@ export default function ReceiptSettingsPage() {
                 className="w-full px-4 py-3 bg-white border-2 border-[#e5e5e5] rounded-xl focus:border-[#c8956e] focus:ring-4 focus:ring-[#c8956e]/10 outline-none transition-all text-[#1a1a1a] resize-none"
                 placeholder="Customer message..."
               />
-              <p className="text-xs text-[#6B6B63] mt-1">Main message to customers</p>
-            </div>
-
-            {/* Footer Text */}
-            <div>
-              <label className="block text-xs font-semibold text-[#1A1614] mb-1">
-                Footer Text
-              </label>
-              <input
-                type="text"
-                value={settings.footerText}
-                onChange={(e) => setSettings({ ...settings, footerText: e.target.value })}
-                className="w-full px-4 py-3 bg-white border-2 border-[#e5e5e5] rounded-xl focus:border-[#c8956e] focus:ring-4 focus:ring-[#c8956e]/10 outline-none transition-all text-[#1a1a1a]"
-                placeholder="Footer text..."
-              />
-              <p className="text-xs text-[#6B6B63] mt-1">Appears at the very bottom</p>
+              <p className="text-xs text-[#6B6B63] mt-1">Main message to customers. Press Enter for a new line.</p>
             </div>
           </div>
 
@@ -536,104 +331,25 @@ export default function ReceiptSettingsPage() {
             </motion.button>
           </div>
 
-          {/* Receipt Preview */}
-          <div className="border-4 border-gray-300 rounded-2xl p-4 bg-white shadow-inner overflow-hidden">
-            <div className="max-w-[280px] mx-auto text-xs leading-relaxed bg-white p-4 border-2 border-gray-200 rounded-lg shadow-lg relative">
-              {/* Header */}
-              {settings.showLogo && (
-                <div className="text-center mb-3 pb-3 border-b-[3px] border-double border-black">
-                  <img 
-                    src="/logo.png" 
-                    alt="Logo" 
-                    className="w-48 h-auto max-h-20 mx-auto mb-2 object-contain grayscale"
-                  />
-                  <div className="text-[10px] italic mb-2">&quot;{settings.tagline}&quot;</div>
-                  <div className="text-[9px] leading-relaxed">
-                    Tel: {settings.phone}<br/>
-                    {settings.website}
-                  </div>
-                </div>
-              )}
-
-              {/* Order Info */}
-              <div className="mb-2 text-[10px]">
-                <div className="flex justify-between mb-1">
-                  <span className="font-bold">Order #:</span>
-                  <span>ORD-SAMPLE</span>
-                </div>
-                <div className="flex justify-between mb-1">
-                  <span className="font-bold">Date:</span>
-                  <span>{new Date().toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between mb-1">
-                  <span className="font-bold">Time:</span>
-                  <span>{new Date().toLocaleTimeString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-bold">Status:</span>
-                  <span>PENDING</span>
-                </div>
-              </div>
-
-              <div className="border-t-2 border-black my-2"></div>
-
-              {/* Items */}
-              <div className="mb-2">
-                <div className="flex justify-between font-bold text-[10px] mb-1 pb-1 border-b border-black">
-                  <span className="flex-1">ITEM</span>
-                  <span className="w-8 text-center">QTY</span>
-                  <span className="w-16 text-right">PRICE</span>
-                </div>
-                <div className="space-y-1 text-[10px]">
-                  <div>
-                    <div className="flex justify-between">
-                      <span className="flex-1">CAPPUCCINO</span>
-                      <span className="w-8 text-center">2</span>
-                      <span className="w-16 text-right">9.00 TND</span>
-                    </div>
-                    <div className="text-[8px] text-gray-600 ml-1">@ 4.50 TND each</div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between">
-                      <span className="flex-1">CROISSANT</span>
-                      <span className="w-8 text-center">1</span>
-                      <span className="w-16 text-right">2.00 TND</span>
-                    </div>
-                    <div className="text-[8px] text-gray-600 ml-1">@ 2.00 TND each</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t-2 border-black my-2"></div>
-
-              {/* Total */}
-              <div className="flex justify-between font-bold text-sm mb-2 pt-2">
-                <span>TOTAL:</span>
-                <span>11.00 TND</span>
-              </div>
-
-              {/* Messages */}
-              <div className="text-center border-t-2 border-dashed border-black pt-2 text-[10px]">
-                <div className="font-bold mb-2">★ {settings.topMessage.toUpperCase()} ★</div>
-                <div className="italic mb-2 leading-snug">
-                  {settings.bottomMessage}
-                </div>
-                {settings.showSocialMedia && (
-                  <div className="text-[8px] mb-2">
-                    {settings.socialMediaText}<br/>
-                    {settings.socialMediaHandle}
-                  </div>
-                )}
-                <div className="text-[9px] my-2">═══════════════════</div>
-                <div className="text-[8px]">{settings.footerText}</div>
-              </div>
-            </div>
+          {/* Receipt Preview: the real receipt template, rendered with the current form values */}
+          <div className="border-4 border-gray-300 rounded-2xl p-4 bg-gray-50 shadow-inner overflow-hidden flex justify-center">
+            <iframe
+              title="Receipt preview"
+              srcDoc={previewHTML}
+              className="bg-white shadow-lg rounded-lg border-2 border-gray-200"
+              style={{ width: 340, height: previewHeight, maxWidth: '100%' }}
+              onLoad={(e) => {
+                // Size the frame to the receipt itself (documentElement never reports less than the frame).
+                const body = e.currentTarget.contentDocument?.body;
+                if (body) setPreviewHeight(Math.ceil(body.getBoundingClientRect().height) + 8);
+              }}
+            />
           </div>
 
           {/* Info */}
           <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-xs text-blue-800">
-              💡 Changes are saved locally and will apply to all future receipts
+              💡 Click &quot;Save Changes&quot; to apply. Settings are stored on the server and used for every receipt, on every device.
             </p>
           </div>
         </motion.div>

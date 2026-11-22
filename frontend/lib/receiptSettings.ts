@@ -1,3 +1,6 @@
+// Receipt content, stored in the database (GET/PUT /api/settings/receipt) so it is
+// shared by every device. Keep defaults in sync with
+// backend-nodejs/src/controllers/settingsController.js (RECEIPT_DEFAULTS).
 export interface ReceiptSettings {
   businessName: string;
   tagline: string;
@@ -9,26 +12,9 @@ export interface ReceiptSettings {
   bottomMessage: string;
   showLogo: boolean;
   showSocialMedia: boolean;
-  footerText: string;
 }
 
-export const getReceiptSettings = (): ReceiptSettings => {
-  if (typeof window === 'undefined') {
-    return getDefaultSettings();
-  }
-
-  const stored = localStorage.getItem('receiptSettings');
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch (error) {
-      return getDefaultSettings();
-    }
-  }
-  return getDefaultSettings();
-};
-
-export const getDefaultSettings = (): ReceiptSettings => ({
+export const DEFAULT_RECEIPT_SETTINGS: ReceiptSettings = {
   businessName: "CAFEINO BISTRO",
   tagline: "Where Every Cup Tells a Story",
   phone: "(555) 123-4567",
@@ -39,5 +25,10 @@ export const getDefaultSettings = (): ReceiptSettings => ({
   bottomMessage: "We hope you enjoyed your experience. Please visit us again soon!",
   showLogo: true,
   showSocialMedia: true,
-  footerText: "Powered by Cafeino POS System"
+};
+
+/** Fill in any missing field with its default. */
+export const withReceiptDefaults = (settings?: Partial<ReceiptSettings> | null): ReceiptSettings => ({
+  ...DEFAULT_RECEIPT_SETTINGS,
+  ...(settings || {}),
 });

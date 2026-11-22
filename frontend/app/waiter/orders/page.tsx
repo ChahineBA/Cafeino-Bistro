@@ -2,6 +2,9 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useOrders, useUpdateOrder } from '@/hooks/useOrders';
+import { useReceiptSettings } from '@/hooks/useReceiptSettings';
+import { buildReceiptHTML, openReceiptWindow } from '@/lib/generateReceipt';
+import { DEFAULT_RECEIPT_SETTINGS } from '@/lib/receiptSettings';
 import { ShoppingCart, Search, CheckCircle, XCircle, Package, ChevronDown, Coffee, Edit, Printer } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -14,6 +17,8 @@ export default function OrdersPage() {
   const [printedOrders, setPrintedOrders] = useState<Set<string>>(new Set());
   const { data: orders = [], isLoading } = useOrders(statusFilter);
   const updateOrder = useUpdateOrder();
+  // Loaded up front so printing can open the receipt window right away (no popup blocking).
+  const { data: receiptSettings } = useReceiptSettings();
 
   // Load printed orders from localStorage on mount
   useEffect(() => {
@@ -98,240 +103,22 @@ export default function OrdersPage() {
   };
 
   const printReceipt = (order: any) => {
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
-    if (!printWindow) {
-      alert('Please allow popups to print the receipt');
+    const html = buildReceiptHTML({
+      title: `Receipt - Order #${order.order_number}`,
+      items: order.items,
+      total: order.total,
+      notes: order.notes,
+      settings: receiptSettings ?? DEFAULT_RECEIPT_SETTINGS,
+      origin: window.location.origin,
+      autoPrint: true,
+    });
+    if (!openReceiptWindow(html)) {
+      alert('Could not open the receipt. Please allow popups for this site and try again.');
       return;
     }
 
-    const receiptHTML = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Receipt - Order #${order.order_number}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            font-family: 'Courier New', monospace;
-            width: 80mm;
-            margin: 0 auto;
-            padding: 10px;
-            background: white;
-            font-size: 12px;
-            line-height: 1.4;
-          }
-          .receipt { width: 100%; }
-          .header {
-            text-align: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px dashed #000;
-          }
-          .logo-image {
-            width: 60mm;
-            height: auto;
-            max-height: 25mm;
-            margin: 0 auto 8px;
-            display: block;
-            object-fit: contain;
-          }
-          .tagline {
-            font-size: 10px;
-            font-style: italic;
-            margin-bottom: 5px;
-          }
-          .contact-info {
-            font-size: 9px;
-            margin-top: 5px;
-          }
-          .divider-thick {
-            border-top: 2px solid #000;
-            margin: 10px 0;
-          }
-          .order-info {
-            margin-bottom: 10px;
-            font-size: 11px;
-          }
-          .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 3px;
-          }
-          .info-label { font-weight: bold; }
-          .items-section { margin: 10px 0; }
-          .items-header {
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-            margin-bottom: 5px;
-            padding-bottom: 3px;
-            border-bottom: 1px solid #000;
-          }
-          .item-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 11px;
-          }
-          .notes-section {
-            margin: 10px 0;
-            padding: 8px;
-            border: 1px dashed #000;
-            font-size: 10px;
-          }
-          .notes-label {
-            font-weight: bold;
-            margin-bottom: 3px;
-          }
-          .total-section {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 2px solid #000;
-          }
-          .total-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 5px;
-          }
-          .message-section {
-            text-align: center;
-            margin-top: 15px;
-            padding-top: 10px;
-            border-top: 2px dashed #000;
-            font-size: 11px;
-          }
-          .thank-you {
-            font-weight: bold;
-            font-size: 13px;
-            margin-bottom: 8px;
-          }
-          .customer-message {
-            font-style: italic;
-            margin-bottom: 8px;
-            line-height: 1.5;
-          }
-          @media print {
-            body { width: 80mm; margin: 0; padding: 5px; }
-            @page { size: 80mm auto; margin: 0; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="receipt">
-          <div class="header">
-            <div class="logo-container">
-              <img src="${window.location.origin}/logo.png" alt="Cafeino Bistro" class="logo-image" />
-              <div class="tagline">"Where Every Cup Tells a Story"</div>
-            </div>
-            <div class="contact-info">
-              Tel: (555) 123-4567<br>
-              www.cafeinobistro.com
-            </div>
-          </div>
-
-          <div class="order-info">
-            <div class="info-row">
-              <span class="info-label">Order #:</span>
-              <span>${order.order_number}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Date:</span>
-              <span>${format(new Date(order.created_at), 'MMM d, yyyy')}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Time:</span>
-              <span>${format(new Date(order.created_at), 'h:mm a')}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Status:</span>
-              <span>${order.status.toUpperCase()}</span>
-            </div>
-          </div>
-
-          <div class="divider-thick"></div>
-
-          <div class="items-section">
-            <div class="items-header">
-              <span style="flex: 1;">ITEM</span>
-              <span style="width: 30px; text-align: center;">QTY</span>
-              <span style="width: 60px; text-align: right;">PRICE</span>
-            </div>
-            ${order.items.map((item: any) => `
-              <div class="item-row">
-                <div style="flex: 1;">${item.product_name}</div>
-                <div style="width: 30px; text-align: center;">${item.quantity}</div>
-                <div style="width: 60px; text-align: right;">${item.subtotal.toFixed(2)} TND</div>
-              </div>
-              <div style="font-size: 9px; color: #666; margin-left: 5px; margin-bottom: 5px;">
-                @ ${item.unit_price.toFixed(2)} TND each
-              </div>
-            `).join('')}
-          </div>
-
-          ${order.notes ? `
-            <div class="notes-section">
-              <div class="notes-label">SPECIAL INSTRUCTIONS:</div>
-              <div>${order.notes}</div>
-            </div>
-          ` : ''}
-
-          <div class="divider-thick"></div>
-
-          <div class="total-section">
-            <div class="total-row">
-              <span>TOTAL:</span>
-              <span>${order.total.toFixed(2)} TND</span>
-            </div>
-          </div>
-
-          <div class="message-section">
-            <div class="thank-you">★ THANK YOU! ★</div>
-            <div class="customer-message">
-              Your satisfaction is our priority!<br>
-              We hope you enjoyed your experience.<br>
-              Please visit us again soon!
-            </div>
-            <div style="margin-top: 8px; font-size: 9px;">
-              Follow us on social media<br>
-              @cafeinobistro
-            </div>
-            <div style="margin-top: 10px; font-size: 10px;">
-              ═══════════════════════
-            </div>
-            <div style="margin-top: 5px; font-size: 9px;">
-              Powered by Cafeino POS System
-            </div>
-          </div>
-        </div>
-        <script>
-          window.addEventListener('load', function() {
-            setTimeout(function() {
-              window.print();
-              window.addEventListener('afterprint', function() {
-                setTimeout(function() {
-                  window.close();
-                }, 500);
-              });
-            }, 300);
-          });
-        </script>
-      </body>
-      </html>
-    `;
-
-    try {
-      printWindow.document.write(receiptHTML);
-      printWindow.document.close();
-      
-      // Mark order as printed
-      setPrintedOrders(prev => new Set(prev).add(order._id));
-    } catch (error) {
-      console.error('Error printing receipt:', error);
-      alert('Error printing receipt. Please try again.');
-      printWindow.close();
-    }
+    // Mark order as printed
+    setPrintedOrders(prev => new Set(prev).add(order._id));
   };
 
   const statusOptions = [

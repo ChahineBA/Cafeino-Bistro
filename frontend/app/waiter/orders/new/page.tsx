@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useProducts } from '@/hooks/useProducts';
 import { useCreateOrder, useUpdateOrder } from '@/hooks/useOrders';
+import { useReceiptSettings } from '@/hooks/useReceiptSettings';
+import { buildReceiptHTML, openReceiptWindow } from '@/lib/generateReceipt';
+import { DEFAULT_RECEIPT_SETTINGS } from '@/lib/receiptSettings';
 import { OrderItem } from '@/types';
 import { Plus, Minus, ShoppingCart, Trash2, Coffee, Check, X, FileText, Croissant, Wine, IceCream, Salad, Cake, UtensilsCrossed, Egg, CupSoda, Dumbbell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,7 +16,9 @@ export default function NewOrderPage() {
   const { data: products = [], isLoading } = useProducts();
   const createOrder = useCreateOrder();
   const updateOrder = useUpdateOrder();
-  
+  // Loaded up front so printing can open the receipt window right away (no popup blocking).
+  const { data: receiptSettings } = useReceiptSettings();
+
   const [cart, setCart] = useState<OrderItem[]>([]);
   const [notes, setNotes] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -231,285 +236,18 @@ export default function NewOrderPage() {
 
   const generatePDF = () => {
     if (!lastOrder) return;
-    
-    // Create a new window for printing
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
-    if (!printWindow) {
-      alert('Please allow popups to download the receipt');
-      return;
-    }
 
-    const receiptHTML = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Receipt - Order #${lastOrder.order_number || 'N/A'}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            font-family: 'Courier New', monospace;
-            width: 80mm;
-            margin: 0 auto;
-            padding: 10px;
-            background: white;
-            font-size: 12px;
-            line-height: 1.4;
-          }
-          .receipt {
-            width: 100%;
-          }
-          .header {
-            text-align: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px dashed #000;
-          }
-          .logo-container {
-            margin-bottom: 8px;
-          }
-          .logo-image {
-            width: 60mm;
-            height: auto;
-            max-height: 25mm;
-            margin: 0 auto 8px;
-            display: block;
-            object-fit: contain;
-          }
-          .tagline {
-            font-size: 10px;
-            font-style: italic;
-            margin-bottom: 5px;
-          }
-          .contact-info {
-            font-size: 9px;
-            margin-top: 5px;
-          }
-          .divider {
-            border-top: 1px dashed #000;
-            margin: 10px 0;
-          }
-          .divider-thick {
-            border-top: 2px solid #000;
-            margin: 10px 0;
-          }
-          .order-info {
-            margin-bottom: 10px;
-            font-size: 11px;
-          }
-          .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 3px;
-          }
-          .info-label {
-            font-weight: bold;
-          }
-          .items-section {
-            margin: 10px 0;
-          }
-          .items-header {
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-            margin-bottom: 5px;
-            padding-bottom: 3px;
-            border-bottom: 1px solid #000;
-          }
-          .item-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 11px;
-          }
-          .item-name {
-            flex: 1;
-            padding-right: 5px;
-          }
-          .item-qty {
-            width: 30px;
-            text-align: center;
-          }
-          .item-price {
-            width: 60px;
-            text-align: right;
-          }
-          .notes-section {
-            margin: 10px 0;
-            padding: 8px;
-            border: 1px dashed #000;
-            font-size: 10px;
-          }
-          .notes-label {
-            font-weight: bold;
-            margin-bottom: 3px;
-          }
-          .total-section {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 2px solid #000;
-          }
-          .total-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 5px;
-          }
-          .message-section {
-            text-align: center;
-            margin-top: 15px;
-            padding-top: 10px;
-            border-top: 2px dashed #000;
-            font-size: 11px;
-          }
-          .thank-you {
-            font-weight: bold;
-            font-size: 13px;
-            margin-bottom: 8px;
-          }
-          .customer-message {
-            font-style: italic;
-            margin-bottom: 8px;
-            line-height: 1.5;
-          }
-          .footer-note {
-            font-size: 9px;
-            margin-top: 8px;
-          }
-          .social-media {
-            font-size: 9px;
-            margin-top: 5px;
-          }
-          @media print {
-            body {
-              width: 80mm;
-              margin: 0;
-              padding: 5px;
-            }
-            @page {
-              size: 80mm auto;
-              margin: 0;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="receipt">
-          <!-- Header with Logo -->
-          <div class="header">
-            <div class="logo-container">
-              <img src="${window.location.origin}/logo.png" alt="Cafeino Bistro" class="logo-image" />
-              <div class="tagline">"Where Every Cup Tells a Story"</div>
-            </div>
-            <div class="contact-info">
-              Tel: (555) 123-4567<br>
-              www.cafeinobistro.com
-            </div>
-          </div>
-
-          <!-- Order Information -->
-          <div class="order-info">
-            <div class="info-row">
-              <span class="info-label">Order #:</span>
-              <span>${lastOrder.order_number || 'N/A'}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Date:</span>
-              <span>${new Date().toLocaleDateString()}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Time:</span>
-              <span>${new Date().toLocaleTimeString()}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Status:</span>
-              <span>PENDING</span>
-            </div>
-          </div>
-
-          <div class="divider-thick"></div>
-
-          <!-- Items -->
-          <div class="items-section">
-            <div class="items-header">
-              <span style="flex: 1;">ITEM</span>
-              <span style="width: 30px; text-align: center;">QTY</span>
-              <span style="width: 60px; text-align: right;">PRICE</span>
-            </div>
-            ${cart.map(item => `
-              <div class="item-row">
-                <div class="item-name">${item.product_name}</div>
-                <div class="item-qty">${item.quantity}</div>
-                <div class="item-price">${item.subtotal.toFixed(2)} TND</div>
-              </div>
-              <div style="font-size: 9px; color: #666; margin-left: 5px; margin-bottom: 5px;">
-                @ ${item.unit_price.toFixed(2)} TND each
-              </div>
-            `).join('')}
-          </div>
-
-          ${notes ? `
-            <div class="notes-section">
-              <div class="notes-label">SPECIAL INSTRUCTIONS:</div>
-              <div>${notes}</div>
-            </div>
-          ` : ''}
-
-          <div class="divider-thick"></div>
-
-          <!-- Total -->
-          <div class="total-section">
-            <div class="total-row">
-              <span>TOTAL:</span>
-              <span>${total.toFixed(2)} TND</span>
-            </div>
-          </div>
-
-          <!-- Customer Message -->
-          <div class="message-section">
-            <div class="thank-you">★ THANK YOU! ★</div>
-            <div class="customer-message">
-              Your satisfaction is our priority!<br>
-              We hope you enjoyed your experience.<br>
-              Please visit us again soon!
-            </div>
-            <div class="footer-note">
-              Follow us on social media<br>
-              @cafeinobistro
-            </div>
-            <div style="margin-top: 10px; font-size: 10px;">
-              ═══════════════════════
-            </div>
-            <div style="margin-top: 5px; font-size: 9px;">
-              Powered by Cafeino POS System
-            </div>
-          </div>
-        </div>
-        <script>
-          // Trigger print dialog after content loads
-          window.addEventListener('load', function() {
-            setTimeout(function() {
-              window.print();
-              // Close window after printing or canceling
-              window.addEventListener('afterprint', function() {
-                setTimeout(function() {
-                  window.close();
-                }, 500);
-              });
-            }, 300);
-          });
-        </script>
-      </body>
-      </html>
-    `;
-
-    try {
-      printWindow.document.write(receiptHTML);
-      printWindow.document.close();
-    } catch (error) {
-      console.error('Error generating receipt:', error);
-      alert('Error generating receipt. Please try again.');
-      printWindow.close();
+    const html = buildReceiptHTML({
+      title: `Receipt - Order #${lastOrder.order_number || 'N/A'}`,
+      items: cart,
+      total,
+      notes,
+      settings: receiptSettings ?? DEFAULT_RECEIPT_SETTINGS,
+      origin: window.location.origin,
+      autoPrint: true,
+    });
+    if (!openReceiptWindow(html)) {
+      alert('Could not open the receipt. Please allow popups for this site and try again.');
     }
   };
 
