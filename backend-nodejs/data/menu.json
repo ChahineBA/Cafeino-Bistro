@@ -1,0 +1,549 @@
+[
+  {
+    "category": "COFFEE & SOFT DRINK",
+    "products": [
+      {
+        "name": "ESSPRESSO",
+        "price": 2.5
+      },
+      {
+        "name": "LUNGO",
+        "price": 2.5
+      },
+      {
+        "name": "FLAT WHITE",
+        "price": 2.7
+      },
+      {
+        "name": "MACCHIATO",
+        "price": 2.7
+      },
+      {
+        "name": "AMERICANO",
+        "price": 3
+      },
+      {
+        "name": "DOPPIO",
+        "price": 4
+      },
+      {
+        "name": "LATTE",
+        "price": 3
+      },
+      {
+        "name": "LATTE AROMATISÉ",
+        "price": 4.5
+      },
+      {
+        "name": "CAFE TURC",
+        "price": 3
+      },
+      {
+        "name": "OREO LATTE",
+        "price": 4.5
+      },
+      {
+        "name": "SPECULOOS LATTE",
+        "price": 4.5
+      },
+      {
+        "name": "CAPPUCCINO",
+        "price": 4.5
+      },
+      {
+        "name": "SPANNISH LATTE",
+        "price": 4.5
+      },
+      {
+        "name": "AFFOGATO",
+        "price": 5
+      },
+      {
+        "name": "PISTACHIO",
+        "price": 5
+      },
+      {
+        "name": "CHOCOLAT CHAUD",
+        "price": 4.5
+      },
+      {
+        "name": "CHOCOLAT AU LAIT",
+        "price": 3
+      },
+      {
+        "name": "CAFE INSTANTANÉ (NESCAFÉ)",
+        "price": 3.5
+      },
+      {
+        "name": "ICED AMERICANO",
+        "price": 4
+      },
+      {
+        "name": "ICED LATTE",
+        "price": 4.5
+      },
+      {
+        "name": "ICED NESCAFÉ",
+        "price": 4.5
+      },
+      {
+        "name": "ICED SPANISH LATTE",
+        "price": 5.5
+      },
+      {
+        "name": "ICED LATTE AROMATISÉ",
+        "price": 6
+      },
+      {
+        "name": "ICED PISTACHIO",
+        "price": 6
+      },
+      {
+        "name": "ICED OREO LATTE",
+        "price": 6
+      },
+      {
+        "name": "ICED SPECULOOS LATTE",
+        "price": 6
+      },
+      {
+        "name": "EAU MINÉRALE (0.5L)",
+        "price": 1.5
+      },
+      {
+        "name": "EAU MINÉRALE (1L)",
+        "price": 2
+      },
+      {
+        "name": "SODA",
+        "price": 3
+      },
+      {
+        "name": "ÉNERGÉTIQUE",
+        "price": 5
+      }
+    ]
+  },
+  {
+    "category": "Tea & Matcha",
+    "products": [
+      {
+        "name": "THÈ CACAHUÈTE",
+        "price": 2.8
+      },
+      {
+        "name": "THÈ A LA MENTHE",
+        "price": 3
+      },
+      {
+        "name": "INFUSION (AHMAD TEA)",
+        "price": 3.5
+      },
+      {
+        "name": "THÈ AMANDE",
+        "price": 4.8
+      },
+      {
+        "name": "THÉ AUX FRUITS SECS",
+        "price": 7
+      },
+      {
+        "name": "MATCHA LATTE",
+        "price": 6
+      },
+      {
+        "name": "MATCHA LATTE AROMATISÉ",
+        "price": 7.5
+      },
+      {
+        "name": "MATCHA STRAWBERRY LATTE",
+        "price": 7.5
+      },
+      {
+        "name": "ICED MATCHA LATTE",
+        "price": 7
+      },
+      {
+        "name": "ICED MATCHA LATTE AROMATISÉ",
+        "price": 8.5
+      },
+      {
+        "name": "ICED MATCHA STRAWBERRY LATTE",
+        "price": 8.5
+      }
+    ]
+  },
+  {
+    "category": "MILK SHAKES & FRAPPUCCINO",
+    "products": [
+      {
+        "name": "FRAPPUCCINO VANILLE",
+        "price": 6.5
+      },
+      {
+        "name": "FRAPPUCCINO CARAMEL",
+        "price": 6.5
+      },
+      {
+        "name": "FRAPPUCCINO NOISETTE",
+        "price": 6.5
+      },
+      {
+        "name": "FRAPPUCCINO NUTELLA",
+        "price": 8.5
+      },
+      {
+        "name": "FRAPPUCCINO OREO",
+        "price": 8.5
+      },
+      {
+        "name": "FRAPPUCCINO SPECULOOS",
+        "price": 8.5
+      },
+      {
+        "name": "CLASSIC",
+        "price": 6.5
+      },
+      {
+        "name": "NUTELLA",
+        "price": 8.5
+      },
+      {
+        "name": "SPECULOOS",
+        "price": 8.5
+      },
+      {
+        "name": "BANANE",
+        "price": 8.5
+      },
+      {
+        "name": "CHOCO CRUNCH",
+        "price": 9.5
+      },
+      {
+        "name": "DELIGHT",
+        "price": 9.5
+      }
+    ]
+  },
+  {
+    "category": "JUS NATURELS & COCKTAILS",
+    "products": [
+      {
+        "name": "CITRON",
+        "price": 3.5
+      },
+      {
+        "name": "ORANGE",
+        "price": 3.5
+      },
+      {
+        "name": "FRAISE",
+        "price": 4.5
+      },
+      {
+        "name": "ANANAS",
+        "price": 5
+      },
+      {
+        "name": "LAIT DE POULE",
+        "price": 6
+      },
+      {
+        "name": "PINA COLADA",
+        "price": 6.5
+      },
+      {
+        "name": "MIAMI",
+        "price": 6.5
+      },
+      {
+        "name": "TROPICAL BLISS",
+        "price": 7
+      },
+      {
+        "name": "ARANCIA",
+        "price": 7
+      },
+      {
+        "name": "CAFÉINO",
+        "price": 8.5
+      },
+      {
+        "name": "VIRGIN",
+        "price": 6.5
+      },
+      {
+        "name": "RED",
+        "price": 7.5
+      },
+      {
+        "name": "BLUE",
+        "price": 7.5
+      },
+      {
+        "name": "BLACK",
+        "price": 8
+      },
+      {
+        "name": "ÉNERGÉTIQUE",
+        "price": 9
+      }
+    ]
+  },
+  {
+    "category": "proteino",
+    "products": [
+      {
+        "name": "THE FLASH",
+        "price": 4
+      },
+      {
+        "name": "THOR",
+        "price": 4
+      },
+      {
+        "name": "HULK",
+        "price": 5
+      },
+      {
+        "name": "RAGNARÖK",
+        "price": 7
+      }
+    ]
+  },
+  {
+    "category": "Petit Dejeuner",
+    "products": [
+      {
+        "name": "PETIT DEJ EASY START",
+        "price": 7
+      },
+      {
+        "name": "PETIT DEJ PREMIUM",
+        "price": 9
+      },
+      {
+        "name": "PETIT DEJ SUNRISE",
+        "price": 11
+      },
+      {
+        "name": "PETIT DEJ TRÉSORS",
+        "price": 12
+      },
+      {
+        "name": "PETIT DEJ HAPPY TOGETHER",
+        "price": 18
+      }
+    ]
+  },
+  {
+    "category": "CROISSANTS & DELICES LAYERS",
+    "products": [
+      {
+        "name": "CROISSANT NATURE",
+        "price": 2
+      },
+      {
+        "name": "CROISSANT AU CHOCOLAT",
+        "price": 2.5
+      },
+      {
+        "name": "CROISSANT AUX AMANDES",
+        "price": 3.5
+      },
+      {
+        "name": "CROISSANT PISTACHE",
+        "price": 4.5
+      },
+      {
+        "name": "CROISSANT PARISIEN (JAMBON)",
+        "price": 4.5
+      },
+      {
+        "name": "CROISSANT MARIN (THON)",
+        "price": 5
+      },
+      {
+        "name": "CROISSANT LATIN (OEUF)",
+        "price": 5
+      },
+      {
+        "name": "CROISSANT 619",
+        "price": 5
+      },
+      {
+        "name": "TIRAMISU FLUFFY AIRY",
+        "price": 5
+      },
+      {
+        "name": "JWAJEM",
+        "price": 6
+      },
+      {
+        "name": "GLACES 2 BOULES",
+        "price": 4.5
+      },
+      {
+        "name": "GLACES 3 BOULES",
+        "price": 6
+      }
+    ]
+  },
+  {
+    "category": "CRÊPES",
+    "products": [
+      {
+        "name": "CHOCOLAT",
+        "price": 7
+      },
+      {
+        "name": "NUTELLA",
+        "price": 8
+      },
+      {
+        "name": "NUTELLA & BANANE",
+        "price": 9.5
+      },
+      {
+        "name": "NUTELLA & SPECULOOS",
+        "price": 9.5
+      },
+      {
+        "name": "NUTELLA & OREO",
+        "price": 9.5
+      },
+      {
+        "name": "PISTACHE & NUTELLA",
+        "price": 10
+      },
+      {
+        "name": "NUTELLA & FRUITS SECS",
+        "price": 9.5
+      },
+      {
+        "name": "SUPREME",
+        "price": 11
+      },
+      {
+        "name": "CAFÉINO",
+        "price": 12
+      },
+      {
+        "name": "JAMBON & FROMAGE",
+        "price": 7.5
+      },
+      {
+        "name": "THON & FROMAGE",
+        "price": 7.5
+      },
+      {
+        "name": "THON , JAMBON & FROMAGE",
+        "price": 9.5
+      },
+      {
+        "name": "619",
+        "price": 9
+      }
+    ]
+  },
+  {
+    "category": "GAUFRES",
+    "products": [
+      {
+        "name": "JAMBON",
+        "price": 7.5
+      },
+      {
+        "name": "ŒUF",
+        "price": 6.5
+      },
+      {
+        "name": "THON",
+        "price": 7.5
+      },
+      {
+        "name": "619",
+        "price": 9.5
+      },
+      {
+        "name": "CHOCOLAT",
+        "price": 7
+      },
+      {
+        "name": "NUTELLA",
+        "price": 8
+      },
+      {
+        "name": "NUTELLA & BANANE",
+        "price": 9.5
+      },
+      {
+        "name": "NUTELLA & SPECULOOS",
+        "price": 9.5
+      },
+      {
+        "name": "NUTELLA & OREO",
+        "price": 9.5
+      },
+      {
+        "name": "NUTELLA & FRUITS SECS",
+        "price": 9.5
+      },
+      {
+        "name": "SUPREME",
+        "price": 11
+      },
+      {
+        "name": "CAFÉINO",
+        "price": 12
+      }
+    ]
+  },
+  {
+    "category": "SALADES & OMLETTES",
+    "products": [
+      {
+        "name": "JAMBON & FROMAGE",
+        "price": 7.5
+      },
+      {
+        "name": "THON & FROMAGE",
+        "price": 7.5
+      },
+      {
+        "name": "THON , JAMBON & FROMAGE",
+        "price": 9.5
+      }
+    ]
+  },
+  {
+    "category": "SUPPLEMENTS",
+    "products": [
+      {
+        "name": "MENTHE",
+        "price": 0.8
+      },
+      {
+        "name": "ARÔME",
+        "price": 1.5
+      },
+      {
+        "name": "DEMI DOSE D'ARÔME",
+        "price": 1
+      },
+      {
+        "name": "LAIT CONCENTRÉ SUCRÉ (NESTLÉ)",
+        "price": 1
+      },
+      {
+        "name": "CRÈME CHANTILLY",
+        "price": 1
+      },
+      {
+        "name": "EXTRA SHOT",
+        "price": 1.5
+      }
+    ]
+  }
+]
