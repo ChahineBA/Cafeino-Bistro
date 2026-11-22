@@ -28,6 +28,9 @@ build/
 .DS_Store
 Thumbs.db
 
+# Logs written by "Start Cafeino.bat"
+logs/
+
 # Project specific
 backend/scraped_menu.json
 backend/knowledge_base.json
