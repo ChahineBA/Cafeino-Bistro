@@ -69,6 +69,9 @@ export const buildReceiptHTML = ({ title, items, total, notes, settings, origin,
       background: white;
       font-size: 12px;
       line-height: 1.4;
+      /* Thermal printers render thin regular strokes as faint grey: print everything bold, pure black. */
+      color: #000;
+      font-weight: bold;
     }
     .receipt { width: 100%; }
     .header {
@@ -86,8 +89,8 @@ export const buildReceiptHTML = ({ title, items, total, notes, settings, origin,
       display: block;
       object-fit: contain;
     }
-    .tagline { font-size: 10px; font-style: italic; margin-bottom: 5px; }
-    .contact-info { font-size: 9px; margin-top: 5px; }
+    .tagline { font-size: 11px; font-style: italic; margin-bottom: 5px; }
+    .contact-info { font-size: 11px; margin-top: 5px; }
     .items-section { margin: 10px 0; }
     .items-header {
       display: flex;
@@ -101,16 +104,16 @@ export const buildReceiptHTML = ({ title, items, total, notes, settings, origin,
       display: flex;
       justify-content: space-between;
       margin-bottom: 5px;
-      font-size: 11px;
+      font-size: 12px;
     }
     .item-name { flex: 1; padding-right: 5px; }
     .item-qty { width: 30px; text-align: center; }
-    .item-price { width: 60px; text-align: right; }
+    .item-price { width: 72px; text-align: right; }
     .notes-section {
       margin: 10px 0;
       padding: 8px;
       border: 1px dashed #000;
-      font-size: 10px;
+      font-size: 11px;
     }
     .notes-label { font-weight: bold; margin-bottom: 3px; }
     .total-section {
@@ -134,7 +137,7 @@ export const buildReceiptHTML = ({ title, items, total, notes, settings, origin,
     }
     .thank-you { font-weight: bold; font-size: 13px; margin-bottom: 8px; }
     .customer-message { font-style: italic; margin-bottom: 8px; line-height: 1.5; }
-    .footer-note { font-size: 9px; margin-top: 8px; }
+    .footer-note { font-size: 11px; margin-top: 8px; }
     @media print {
       body { width: 80mm; margin: 0; padding: 5px; }
       @page { size: 80mm auto; margin: 0; }
@@ -156,7 +159,7 @@ export const buildReceiptHTML = ({ title, items, total, notes, settings, origin,
       <div class="items-header">
         <span style="flex: 1;">ITEM</span>
         <span style="width: 30px; text-align: center;">QTY</span>
-        <span style="width: 60px; text-align: right;">PRICE</span>
+        <span style="width: 72px; text-align: right;">PRICE</span>
       </div>
       ${items.map((item) => `
       <div class="item-row">
