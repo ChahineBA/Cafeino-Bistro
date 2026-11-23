@@ -2,11 +2,13 @@
 # Launched by "Start Cafeino.bat". Safe to run again while the app is already running.
 #
 #   -NoBrowser   start everything but don't open the browser (for testing)
+#   -NoUpdate    don't check GitHub for updates
 #   -CheckNode   only show where Node.js was found (troubleshooting), then exit
 #
-# First run / after an update (git pull) it installs packages and builds the website.
-# Server output goes to the "logs" folder next to this project.
-param([switch]$NoBrowser, [switch]$CheckNode)
+# On a fresh start it first downloads updates from GitHub (fast-forward only; skipped
+# quietly when offline). First run / after an update it installs packages and builds the
+# website. Server output goes to the "logs" folder next to this project.
+param([switch]$NoBrowser, [switch]$CheckNode, [switch]$NoUpdate)
 
 $ErrorActionPreference = 'Stop'
 $Root     = Split-Path -Parent $PSScriptRoot
@@ -130,6 +132,49 @@ function Install-PackagesIfNeeded([string]$Dir, [string]$Label) {
   Set-Content -Path $stampFile -Value $hash -Encoding ascii
 }
 
+# Runs "git <args>" in the project, hidden, with a time limit. Returns the exit code, or -1 on timeout.
+function Invoke-Git([string]$GitArgs, [int]$TimeoutSec) {
+  $log = Join-Path $Logs 'update.log'
+  "`r`n===== git $GitArgs - $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') =====" | Out-File -FilePath $log -Append -Encoding ascii
+  $proc = Start-Process -FilePath 'cmd.exe' -ArgumentList "/c git $GitArgs >> `"$log`" 2>&1" `
+    -WorkingDirectory $Root -WindowStyle Hidden -PassThru
+  $null = $proc.Handle   # needed so ExitCode is available later (PowerShell 5.1)
+  if (-not $proc.WaitForExit($TimeoutSec * 1000)) {
+    try { & taskkill.exe /T /F /PID $proc.Id | Out-Null } catch {}
+    "  (timed out after $TimeoutSec s)" | Out-File -FilePath $log -Append -Encoding ascii
+    return -1
+  }
+  return $proc.ExitCode
+}
+
+# Downloads new commits from GitHub if there are any. Never blocks the start:
+# no git, no internet, expired login or local changes -> keep the current version.
+function Update-App {
+  $ErrorActionPreference = 'Continue'
+  if (-not (Get-Command git.exe -ErrorAction SilentlyContinue)) { return }
+  if (-not (Test-Path (Join-Path $Root '.git'))) { return }
+
+  # Fail instead of showing a GitHub login window if the saved login expired.
+  $env:GIT_TERMINAL_PROMPT = '0'
+  $env:GCM_INTERACTIVE = 'never'
+
+  Say 'Checking for updates...'
+  if ((Invoke-Git 'fetch --quiet' 45) -ne 0) {
+    Say 'Could not check for updates (no internet?). Starting the current version.' 'DarkYellow'
+    return
+  }
+  $behind = 0
+  try { $behind = [int](& git -C $Root rev-list --count 'HEAD..@{u}' 2>$null) } catch { $behind = 0 }
+  if ($behind -le 0) { Say 'Up to date.'; return }
+
+  Say "Downloading the update ($behind new change(s))..."
+  if ((Invoke-Git 'merge --ff-only --quiet @{u}' 60) -ne 0) {
+    Say 'Could not apply the update (files were changed on this computer). Starting the current version.' 'DarkYellow'
+    return
+  }
+  Say 'Updated.' 'Green'
+}
+
 # Starts "npm start" hidden in the background. Output goes to the log file.
 function Start-Server([string]$Dir, [string]$LogName) {
   $log = Join-Path $Logs $LogName
@@ -187,6 +232,9 @@ $frontendUp = Test-Url $AppUrl
 if ($backendUp -and $frontendUp) {
   Say 'Already running.' 'Green'
 } else {
+  # Update only on a fresh start, never while part of the till is still running.
+  if (-not $NoUpdate -and -not $backendUp -and -not $frontendUp) { Update-App }
+
   $node = Find-Node
   $script:NodeReport | Out-File -FilePath (Join-Path $Logs 'node-search.log') -Encoding ascii
   if (-not $node) {
